@@ -2,6 +2,15 @@
 
 There are certain deficiencies in the current cloud ecosystem that make it difficult to use the cloud ecosystem as a cohesive programming environment. These are several improvements across language, tooling and runtime that can make the interface to the cloud much more robust.
 
+Very briefly some of these shortcomings are -
+* Infrastructure declaration and configuration and application logic exist in separate paradigms - AWS CDK is making great progress in fixing this [^2].
+* Infrastructure components are not derived from application logic - Punchcard project is trying to solve this [^6].
+* Most cloud services do not allow defining **application constraints** in terms of business metrics (e.g. latency, throughput, cost, availability). Note that they still expose these metrics. - Kubernetes has some concepts of constraints, when it works within user defined distruption budget for new deployments [^7].
+* Cloud SDKs lack declaring and checking invariants, modeling performance and simulating the system before actually running it.
+* Cloud SDKs have no way to generate the permissions required to a run an application. This makes the process of creating policies very tedious and error prone.
+
+NOTE: Most of the issues and potential ideas discussed here are in context of building applications on top of a service. It is less so about building a cloud service. The reason being that each cloud service exposes a robust and exhaustive set of APIs that can be reasoned about independently.
+
 ## Constraint based programming [^1]
 
 A common use case in building cloud applications is choosing and configuring the compute layer that actually runs the application logic. Making this decision is not easy as it depends on some of the following factors - cost, performance, maintainence overhead, security.
@@ -73,3 +82,5 @@ All the above features point towards creating a language more suited towards the
 * [^3]: [Protocol combinators](https://ilyasergey.net/assets/pdf/papers/dpc-jfp.pdf)  
 * [^4]: [Zelkova](https://www.cs.utexas.edu/users/hunt/FMCAD/FMCAD18/papers/paper3.pdf) can create permission policies based on historical usage patterns. It's still missing a way to generate policy by statically analyzing code.  
 * [^5]: Discussions with [@ajit-kolathur](https://github.com/ajit-kolathur)  
+* [^6]: [Punchcard](https://github.com/punchcard/punchcard)  
+* [^7]: [Kubernetes disruption budgets](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/)
