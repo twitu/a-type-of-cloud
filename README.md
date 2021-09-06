@@ -5,14 +5,14 @@ The current cloud ecosystem has made huge strides in making powerful computing r
 However despite the advances, the cloud ecosytem is lacking tooling to reason across these different services. This makes it difficult to create applications that are correct, secure, efficient and that align with business requirements. Briefly some of these shortcomings -
 
 * Infrastructure declaration and configuration and application logic exist in **separate paradigms** - AWS CDK is making great progress in fixing this [^2](#design-and-implementation-of-aws-cdk).
-* Infrastructure components are **not derived from application** logic - Punchcard project is trying to solve this [^5](#punchcard).
-* Most cloud services do not allow defining **application constraints** in terms of business metrics, for e.g. latency, throughput, cost, availability. - Kubernetes has some concepts of constraints, when it works within user defined distruption budget for new deployments [^6](#kubernetes-disruption-budgets).
+* Infrastructure components are **not derived from application** logic - Punchcard project is trying to solve this [^5](#5-punchcard).
+* Most cloud services do not allow defining **application constraints** in terms of business metrics, for e.g. latency, throughput, cost, availability. - Kubernetes has some concepts of constraints, when it works within user defined distruption budget for new deployments [^6](#6-kubernetes-disruption-budgets).
 * Cloud systems lack tools to reason about performance bottlenecks, estimate cost and check logical invariants across multiple components **without running the application**.
 * Cloud systems lack tools to generate the permissions required to a run an application **from the application logic** itself. This makes the process of creating secure policies tedious and very error prone.
 
 Let's consider the journey of a fictional (is it?) startup called YAP (Yet Another App). They are making an app that allows users to upload photographs and find similar photographs. We will see the kind of challenges YAP faces as they grow and expand on the cloud.
 
-## Constraint based programming [^1](#new-direction-in-cloud-programming)
+## Constraint based programming [^1](#1-new-direction-in-cloud-programming)
 
 ### Story
 
@@ -39,7 +39,7 @@ A moden programming system should understand changing requirements from high lev
 
 While this is a straight forward real world components modelling will consider numerous properties including cost, throughput, latency, integrations, operational overhead. A programming system with this information will be able to derive the architectural components from the application annotated by constraints.
 
-## Automated least priviledge security [^4](#zelkova)
+## Automated least priviledge security [^4](#4-zelkova)
 
 ### Story
 
@@ -55,7 +55,7 @@ A modern programming system should generate the permissions from application log
 
 An additional challenge can be to strike a balance between the readability of the policy vs it's conciseness.
 
-## Simulating systems [^2](#design-and-implementation-of-aws-cdk) [^3](#protocol-combinators)
+## Simulating systems [^2](#2-design-and-implementation-of-aws-cdk) [^3](#3-protocol-combinators)
 
 ## Story
 
@@ -73,7 +73,7 @@ The three problems mentioned above, namely reasoning about performance, enforcin
 
 A modern programming system should do allow the following -
 
-* Declare logical invariants for the data flow specification. Simluate the application as a state machine to check if invariants are satified. Derive [the working implementation from the specification][^3](#protocol-combinators) to ensure there is no gap.
+* Declare logical invariants for the data flow specification. Simluate the application as a state machine to check if invariants are satified. Derive the working implementation from the specification [^3](#3-protocol-combinators) to ensure there is no gap.
 * Perform data flow analysis and consider performance characteristics of various architectural components to identify bottlenecks.
 * Use cost models of various architectural components and sample data traces or probabilistic traffic patterns to derive cost estimates without deploying/running the application.
 
@@ -94,15 +94,15 @@ The above ideas point towards creating a language and runtime more suited to tac
 1. Types that also model performance, availability and similar "auxiliary" properties. Any component is composed a few core types and inherits from their auxiliary properties.
 2. Type checker can solve constraints to find approprirate representation for types.
 3. External API that are modelled as effects and are part of the function/solution signature. Making it possible to derive the permissions required by application runtime.
-4. Core network, storage APIs are defined and have polymorphic implementations to derive working implementation, state machine implementation and invariant checking implementations from the same specification. [^3](#protocol-combinators)
-5. The high level specification generates a human readable DSL that can be changed to make specific optimizations or changes. [^2](#design-and-implementation-of-aws-cdk)
+4. Core network, storage APIs are defined and have polymorphic implementations to derive working implementation, state machine implementation and invariant checking implementations from the same specification. [^3](#3-protocol-combinators)
+5. The high level specification generates a human readable DSL that can be changed to make specific optimizations or changes. [^2](#2-design-and-implementation-of-aws-cdk)
 
 # References
 
-#### [New direction in Cloud programming](http://cidrdb.org/cidr2021/papers/cidr2021_paper16.pdf)
-#### [Design and implementation of AWS CDK](https://github.com/aws/aws-cdk)
-#### [Protocol combinators](https://ilyasergey.net/assets/pdf/papers/dpc-jfp.pdf)
-#### [Zelkova](https://www.cs.utexas.edu/users/hunt/FMCAD/FMCAD18/papers/paper3.pdf)
+#### 1. [New direction in Cloud programming](http://cidrdb.org/cidr2021/papers/cidr2021_paper16.pdf)
+#### 2. [Design and implementation of AWS CDK](https://github.com/aws/aws-cdk)
+#### 3. [Protocol combinators](https://ilyasergey.net/assets/pdf/papers/dpc-jfp.pdf)
+#### 4. [Zelkova](https://www.cs.utexas.edu/users/hunt/FMCAD/FMCAD18/papers/paper3.pdf)
 Zelkova can create permission policies based on historical usage patterns. It's still missing a way to generate policy by statically analyzing code.
-#### [Punchcard](https://github.com/punchcard/punchcard)  
-#### [Kubernetes disruption budgets](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/)
+#### 5. [Punchcard](https://github.com/punchcard/punchcard)  
+#### 6. [Kubernetes disruption budgets](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/)
