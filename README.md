@@ -2,9 +2,9 @@
 
 The current cloud ecosystem has made huge strides in making powerful computing resources accessible. There is a cloud service for almost any use case that you can come up with and using it is as easy as plugging it into your application.
 
-However despite the advances, the cloud ecosytem is lacking tooling to reason across these different services. This makes it difficult to create applications that are correct, secure, efficient and that align with business requirements. Briefly some of these shortcomings -
+However despite the advances, the cloud ecosytem is lacking tooling to reason across these different services. This makes it difficult to create applications that are correct (i.e. respect invariants, satisfy property based tests across distributed components), secure, efficient and that align with business requirements. Briefly some of these shortcomings -
 
-* Infrastructure declaration and configuration and application logic exist in **separate paradigms** - AWS CDK is making great progress in fixing this [^2](#design-and-implementation-of-aws-cdk).
+* Infrastructure declaration, configuration and application logic exist in **separate paradigms** - AWS CDK is making great progress in fixing this [^2](#design-and-implementation-of-aws-cdk).
 * Infrastructure components are **not derived from application** logic - Punchcard project is trying to solve this [^5](#5-punchcard).
 * Most cloud services do not allow defining **application constraints** in terms of business metrics, for e.g. latency, throughput, cost, availability. - Kubernetes has some concepts of constraints, when it works within user defined distruption budget for new deployments [^6](#6-kubernetes-disruption-budgets).
 * Cloud systems lack tools to reason about performance bottlenecks, estimate cost and check logical invariants across multiple components **without running the application**.
@@ -16,7 +16,7 @@ Let's consider the journey of a fictional (is it?) startup called YAP (Yet Anoth
 
 ### Story
 
-YAP bootstraps itself on a low budget and starts with Functions as a Service (Faas - AWS Lambda, Azure functions), a database and a blog storage (for photos). Their users are mostly local and the application can easily handle the peak 2000 req/s  that come at it. User activity is very bursty and can often be as low as 10 req/s, using stateless functions to handle requests YAP can scale their costs linearly with the number of requests.
+YAP bootstraps itself on a low budget and starts with Functions as a Service (Faas - AWS Lambda, Azure functions), a database and a blob storage (for photos). Their users are mostly local and the application can easily handle the peak 2000 req/s  that come at it. User activity is very bursty and can often be as low as 10 req/s, using stateless functions to handle requests YAP can scale their costs linearly with the number of requests.
 
 Soon YAP starts getting popular and is used across the country. It's daily traffic steadily increases and they start hitting bottlenecks. To handle bursty traffic between 10,000 req/s and 30,000 req/s they start serving traffic through stateful servers running in Docker containers. Kubernetes like orchestration services allow them to easily scale up and down their compute capacity with cost scaling linearly with traffic.
 
@@ -28,24 +28,24 @@ In YAP's journey we see business requirements and user behaviour drive architect
 
 ### Idea
 
-A moden programming system should understand changing requirements from high level constraints and choose appropriate components. Here's a table mapping the relationship in the above table.
+A modern programming system should understand changing requirements from high level constraints and choose appropriate components. Here's a table mapping the relationship in the above table.
 
 | Situation | Component |
 | -- | -- |
 | 1000 - 3000 req/s | stateless functions |
 | 10,000 - 30,000 req/s | servers running in containers |
 | 1.5 secs end user latency | CDN |
-| 100,000 req/s | servers running on dedicated VMs with thresholds and autoscaling |
+| 100,000 req/s | servers running on reserved VMs with thresholds and autoscaling |
 
 While this is a straight forward real world components modelling will consider numerous properties including cost, throughput, latency, integrations, operational overhead. A programming system with this information will be able to derive the architectural components from the application annotated by constraints.
 
-## Automated least priviledge security [^4](#4-zelkova)
+## Automated least priviledge security [^4](#4-zelkova) [^7](#7-capabilities-effects-for-free)
 
 ### Story
 
 YAP stores photographs submitted by users for queries. It guarantees users that the data is only used for queries and then deleted from their servers. Moreover YAP also maintains a database of uploaded photographs to search against. They want to keep their user data and database secure.
 
-YAP creates a security policy for their query server. So that even if an attacker gets into one of query servers it won't be able to delete or bulk download all the images since the runtime environment does not have those permissions. However a new component got added for the caching layer and because of the urgent release deadline they were not able to create a least priviledge policy in time and deployed the service with basic checks.
+YAP creates a security policy for their query server. So that even if an attacker gets into one of query servers, they won't be able to delete or bulk download all the images since the runtime environment does not have those permissions. However a new component got added for the caching layer and because of the urgent release deadline they were not able to create a least priviledge policy in time and deployed the service with basic checks.
 
 ### Idea
 
@@ -53,9 +53,10 @@ A common theme across cloud provider is ensuring least priviledge access. This m
 
 A modern programming system should generate the permissions from application logic. It can analyse the application and it's dependencies to find the set of external API calls being made. Constant values used as parameters can be used directly while dynamic values can be kept as parameters. This set of API calls can even indicate what kind of security the application needs and determine the best runtime environment for it.
 
-An additional challenge can be to strike a balance between the readability of the policy vs it's conciseness.
+Capability-effect systems are another technique used to reason about the effects of a piece of code. It can also be used to check if the logic is in violation of it's given capabilities by making incapable effectul calls. The challenge with these systems is to balance between verbosity i.e. every capability of every function is declared vs observability i.e. capabilities are declared at a high level function/api and lower level functions do not need furhter annnotation reducing cognitive burden. An addition benefit of such a system is that it can be retrofitted on to existing type systems and even be modified to use with languages without type systems.
 
-## Simulating systems [^2](#2-design-and-implementation-of-aws-cdk) [^3](#3-protocol-combinators)
+
+## Reasoning about systems better [^2](#2-design-and-implementation-of-aws-cdk) [^3](#3-protocol-combinators)
 
 ## Story
 
@@ -73,9 +74,12 @@ The three problems mentioned above, namely reasoning about performance, enforcin
 
 A modern programming system should do allow the following -
 
-* Declare logical invariants for the data flow specification. Simluate the application as a state machine to check if invariants are satified. Derive the working implementation from the specification [^3](#3-protocol-combinators) to ensure there is no gap.
+* Declare logical invariants for the data flow specification. Simluate the application as a state machine to check if invariants are satisfied. Derive the working implementation from the specification [^3](#3-protocol-combinators) to ensure there is no gap.
+
 * Perform data flow analysis and consider performance characteristics of various architectural components to identify bottlenecks.
 * Use cost models of various architectural components and sample data traces or probabilistic traffic patterns to derive cost estimates without deploying/running the application.
+
+In cloud environments, small changes can have big downstream impact. The idea is that simulations and static analysis tools, can help analyse the difference a change will make. Adding a new service can be modelled as changing the flow of data through the service. The changed flow affects performance and associated cost. Better programming systems can help architects and designers in understanding changes better by showing the delta with current behaviour. This can let them iterate faster and make more informed decisions.
 
 ## Dynamic application logic based on infrastructure state
 
@@ -106,3 +110,4 @@ The above ideas point towards creating a language and runtime more suited to tac
 Zelkova can create permission policies based on historical usage patterns. It's still missing a way to generate policy by statically analyzing code.
 #### 5. [Punchcard](https://github.com/punchcard/punchcard)  
 #### 6. [Kubernetes disruption budgets](https://kubernetes.io/docs/concepts/workloads/pods/disruptions/)
+#### 7. [Capabilities Effects for free](https://link.springer.com/chapter/10.1007/978-3-030-02450-5_14)
